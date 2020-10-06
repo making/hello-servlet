@@ -9,20 +9,21 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.prometheus.PrometheusMeterRegistry;
+import io.prometheus.client.exporter.common.TextFormat;
 
 import static com.example.hello.MeterRegistryServletContextListener.METER_REGISTRY_NAME;
 
-@WebServlet(name = "hello", urlPatterns = "/")
-public class HelloServlet extends HttpServlet {
+@WebServlet(name = "metrics", urlPatterns = "/metrics")
+public class MetricsServlet extends HttpServlet {
+
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse res)
 			throws ServletException, IOException {
-		final MeterRegistry meterRegistry = (MeterRegistry) this.getServletContext().getAttribute(METER_REGISTRY_NAME);
-		res.setContentType("text/plain;charset=utf-8");
+		final PrometheusMeterRegistry meterRegistry = (PrometheusMeterRegistry) this.getServletContext().getAttribute(METER_REGISTRY_NAME);
+		res.setContentType(TextFormat.CONTENT_TYPE_004);
 		PrintWriter pw = res.getWriter();
-		pw.print("Hello World!!");
-		meterRegistry.counter("hello").increment();
+		pw.print(meterRegistry.scrape());
 		pw.flush();
 	}
 }
